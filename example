@@ -1,0 +1,217 @@
+
+using System;
+using System.Data.SqlClient;
+using System.Xml;
+using System.Data;
+// 
+public class QuickBooks_Implementor_Example : QuickBooks_Implementor
+{
+
+    // Configuration variable indicating the last date/time the sync occured
+
+    public const string KEY_DATETIME = "last_datetime";
+    // QBWC username
+
+    public const string QBWC_USERNAME = "quickbooks";
+    // QBWC password
+
+    public const string QBWC_PASSWORD = "password";
+    // QuickBooks driver object
+
+    protected QuickBooks_Driver _objDriver;
+    // Create a new implementor
+    public QuickBooks_Implementor_Example()
+    {
+        string strDatabaseDSN = null;
+        QuickBooks_Config objConfig = default(QuickBooks_Config);
+
+        // Configuration info and database connection for connection to QuickBooks integration tables/database
+        objConfig = new QuickBooks_Config(System.Configuration.ConfigurationManager.AppSettings);
+        strDatabaseDSN = objConfig.fetch("databaseDSN");
+
+        this._objDriver = new QuickBooks_Driver_MSSQLServer(strDatabaseDSN, objConfig);
+
+        this._objDriver.log("", "Connecting to database...");
+    }
+
+    // 
+    // 
+    // 
+    public override void onAuthLogin(string strUsername, string strPassword, string strTicket)
+    {
+        string strDatetime = null;
+        DateTime dtDatetime = default(DateTime);
+        int i = 0;
+        i = 0;
+
+        // 
+        this._objDriver.log("", "Running onAuthLogin() hook...");
+
+        strDatetime = this._objDriver.configGet(strUsername, QuickBooks_Implementor_Example.KEY_DATETIME);
+
+        if (strDatetime.Length > 0)
+        {
+            dtDatetime = DateTime.Parse(strDatetime);
+        }
+        else
+        {
+            dtDatetime = DateTime.Now;
+        }
+
+        this._objDriver.configSet(strUsername, QuickBooks_Implementor_Example.KEY_DATETIME, DateTime.Now.ToString("u"));
+        this._objDriver.queueEnqueue(QuickBooks_Implementor_Example.QBWC_USERNAME, QuickBooks.ADD_INVENTORYITEM, i.ToString(), QuickBooks.PRIORITY_HIGHEST);
+      //  this._objDriver.queueEnqueue(QuickBooks_Implementor_Example.QBWC_USERNAME, QuickBooks.ADD_INVOICE, i.ToString(), QuickBooks.PRIORITY_HIGHEST);
+        // this._objDriver.queueEnqueue(QuickBooks_Implementor_Example.QBWC_USERNAME, QuickBooks.QUERY_ACCOUNT, i.ToString(), QuickBooks.PRIORITY_HIGHEST);//
+
+      //  this._objDriver.queueEnqueue(QuickBooks_Implementor_Example.QBWC_USERNAME, QuickBooks.ADD_CUSTOMER, i.ToString(), QuickBooks.PRIORITY_HIGHEST);
+
+        //for (i = 0; i <= 10; i++)
+        //{
+        //    this._objDriver.queueEnqueue(QuickBooks_Implementor_Example.QBWC_USERNAME, QuickBooks.ADD_CUSTOMER, i.ToString(), QuickBooks.PRIORITY_HIGHEST);
+        //}
+
+    }
+
+    // Create a map to tie QuickBooks actions to request and response handler methods
+    // 
+    // For each QuickBooks action (i.e. CustomerAdd, InvoiceAdd, etc.) we need to 
+    // implement two methods: 
+    //  1. a request handler which builds and returns a qbXML request to send to QuickBooks
+    //	2. a response handler which accepts a qbXML response and handles it appropriately
+    // 
+    // This method builds and returns a mapper that ties actions to request and response 
+    // method names. 
+    // 
+    // @return		The map object
+    protected override QuickBooks_Mapper _map()
+    {
+        QuickBooks_Mapper objMapper = default(QuickBooks_Mapper);
+        objMapper = new QuickBooks_Mapper();
+
+        objMapper.map(QuickBooks.ADD_CUSTOMER, "doCustomerAddRequest", "doCustomerAddResponse");
+        objMapper.map(QuickBooks.ADD_INVOICE, "doInvoiceAddRequest", "doInvoiceAddResponse");
+        objMapper.map(QuickBooks.ADD_INVENTORYITEM, "doInventoryItemAddRequest", "doInventoryItemResponse");
+        objMapper.map(QuickBooks.QUERY_ACCOUNT, "doAccountQueryRequest", "doAcccountQueryResponse");
+        objMapper.map(QuickBooks.ADD_RECEIVEPAYMENT, "doReceivePaymentAddRequest", "doReceivePaymentAddResponse");
+        objMapper.map(QuickBooks.ADD_NONINVENTORYITEM, "doNonInventoryItemAddRequest", "doNonInventoryItemAddResponse");
+        objMapper.map(QuickBooks.GET_BY_NAME_ITEM, "doItemGetByNameRequest", "doItemGetByNameResponse");
+        objMapper.map(QuickBooks.GET_BY_NAME_CUSTOMER, "doCustomerGetByNameRequest", "doCustomerGetByNameResponse");
+
+        return objMapper;
+    }
+
+    // Build and return a qbXML request to return to QuickBooks which adds a customer
+    // 
+    // @param strUser		The QBWC username
+    // @param strRequestID	The requestID of the request we're sending
+    // @param strAction		The type of action
+    // strIdent				The primary key from your application
+    // strExtra				Any extra data that was passed 
+    // strVersion			The maximum qbXML version supported
+    // strLocale				The locale QuickBooks is using (US, UK, CA, etc.)
+    // @return				A valid qbXML CustomerAdd request
+    public string doCustomerAddRequest(string strUser, string strRequestID, string strAction, string strIdent, string strExtra, string strVersion, string strLocale)
+    {
+        string strResponse = null;
+        strResponse = "";
+       
+        // Build the qbXML request
+        strResponse = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" + "<?qbxml version=\"6.0\"?>\r\n<QBXML>\r\n\t<QBXMLMsgsRq onError=\"continueOnError\">\r\n\t\t<CustomerAddRq requestID=\"" + strRequestID + "\">\r\n\t\t\t<CustomerAdd>\r\n\t\t\t\t<Name>" + QuickBooks_Cast.cast(QuickBooks.ADD_CUSTOMER, "Name", "Keith Palmer #" + strIdent) + "</Name>\r\n\t\t\t\t<FirstName>" + QuickBooks_Cast.cast(QuickBooks.ADD_CUSTOMER, "FirstName", "Keith") + "</FirstName>\r\n\t\t\t\t<LastName>" + QuickBooks_Cast.cast(QuickBooks.ADD_CUSTOMER, "LastName", "Palmer") + "</LastName>\r\n\t\t\t\t<BillAddress>\r\n\t\t\t\t\t<Addr1>" + QuickBooks_Cast.cast(QuickBooks.ADD_CUSTOMER, "BillAddress/Addr1", "134 Stonemill Road") + "</Addr1>\r\n\t\t\t\t\t<Addr2>" + QuickBooks_Cast.cast(QuickBooks.ADD_CUSTOMER, "BillAddress/Addr2", "") + "</Addr2>\r\n\t\t\t\t\t<City>" + QuickBooks_Cast.cast(QuickBooks.ADD_CUSTOMER, "BillAddress/City", "Mansfield") + "</City>\r\n\t\t\t\t\t<State>" + QuickBooks_Cast.cast(QuickBooks.ADD_CUSTOMER, "BillAddress/State", "CT") + "</State>\r\n\t\t\t\t\t<PostalCode>" + QuickBooks_Cast.cast(QuickBooks.ADD_CUSTOMER, "BillAddress/PostalCode", "06268") + "</PostalCode>\r\n\t\t\t\t</BillAddress>\r\n\t\t\t\t<Phone>" + QuickBooks_Cast.cast(QuickBooks.ADD_CUSTOMER, "Phone", "1.860.634.1602") + "</Phone>\r\n\t\t\t\t<Email>" + QuickBooks_Cast.cast(QuickBooks.ADD_CUSTOMER, "Email", "keith@consolibyte.com") + "</Email>\r\n\t\t\t</CustomerAdd>\r\n\t\t</CustomerAddRq>\r\n\t</QBXMLMsgsRq>\r\n</QBXML>";
+       
+        return strResponse;
+    }
+
+    public string doCustomerAddResponse(string strUser, string strRequestID, string strAction, string strIdent, string strExtra, string strQBXML, string strListIDOrTxnID)
+    {
+        string strListID = null;
+        strListID = this._extractListID(strQBXML);
+
+        this._objDriver.createMapping(QuickBooks_Implementor_Example.QBWC_USERNAME, QuickBooks.OBJECT_CUSTOMER, strListID, strIdent);
+
+        return "OK";
+    }
+
+    public string doAccountQueryRequest(string strUser, string strRequestID, string strAction, string strIdent, string strExtra, string strVersion, string strLocale)
+    {
+        string strResponse = null;
+        strResponse = "";
+        // Build the qbXML request
+        strResponse = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" + "<?qbxml version=\"6.0\"?>\r\n<QBXML>\r\n\t<QBXMLMsgsRq onError=\"continueOnError\">\r\n\t\t<AccountQueryRq requestID=\"" + strRequestID + "\">\r\n</AccountQueryRq>\r\n\t</QBXMLMsgsRq>\r\n</QBXML>";
+
+        return strResponse;
+    }
+
+    public string doAccountQueryResponse(string strUser, string strRequestID, string strAction, string strIdent, string strExtra, string strQBXML, string strListIDOrTxnID)
+    {
+        string strListID = null;
+        strListID = this._extractListID(strQBXML);
+
+        this._objDriver.createMapping(QuickBooks_Implementor_Example.QBWC_USERNAME, QuickBooks.OBJECT_CUSTOMER, strListID, strIdent);
+
+        return "OK";
+    }
+
+    public string doInvoiceAddRequest(string strUser, string strRequestID, string strAction, string strIdent, string strExtra, string strVersion, string strLocale)
+    {
+        string strResponse = null;
+        var cutListId = _objDriver.mapIdentToQuickBooksID(QuickBooks_Implementor_Example.QBWC_USERNAME, QuickBooks.OBJECT_CUSTOMER, strIdent);
+        strResponse = "";
+        // Build the qbXML request
+        strResponse = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" + "<?qbxml version=\"6.0\"?>\r\n<QBXML>\r\n\t<QBXMLMsgsRq onError=\"continueOnError\">\r\n\t\t";
+        strResponse += "<InvoiceAddRq requestID=\"" + strRequestID + "\"><InvoiceAdd><CustomerRef><ListID>" + cutListId + "</ListID></CustomerRef><TxnDate>2007-12-14</TxnDate><RefNumber>9668</RefNumber><BillAddress><Addr1>56 Cowles Road</Addr1><City>Willington</City><State>CT</State><PostalCode>06279</PostalCode><Country>United States</Country></BillAddress><PONumber></PONumber><Memo></Memo><InvoiceLineAdd><ItemRef><FullName>Downloaded Invoice</FullName></ItemRef><Desc>Item 1 Description Goes Here</Desc><Quantity>1</Quantity><Rate>295</Rate></InvoiceLineAdd><InvoiceLineAdd><ItemRef><FullName>Downloaded Invoice</FullName></ItemRef><Desc>Item 2 Description Goes Here</Desc><Quantity>3</Quantity><Rate>25</Rate></InvoiceLineAdd></InvoiceAdd></InvoiceAddRq>";
+        strResponse += "\r\n\t</QBXMLMsgsRq>\r\n</QBXML>";
+        return strResponse;
+    }  
+    
+    public string doInvoiceAddResponse(string strUser, string strRequestID, string strAction, string strIdent, string strExtra, string strQBXML, string strListIDOrTxnID)
+    {
+        string strListID = null;
+        strListID = this._extractListID(strQBXML);
+
+        this._objDriver.createMapping(QuickBooks_Implementor_Example.QBWC_USERNAME, QuickBooks.OBJECT_CUSTOMER, strListID, strIdent);
+
+        return "OK";
+    }
+
+    public string doInventoryItemAddRequest(string strUser, string strRequestID, string strAction, string strIdent, string strExtra, string strVersion, string strLocale)
+    {
+        string strResponse = null;
+        var cutListId = _objDriver.mapIdentToQuickBooksID(QuickBooks_Implementor_Example.QBWC_USERNAME, QuickBooks.OBJECT_CUSTOMER, strIdent);
+        strResponse = "";
+        // Build the qbXML request
+        strResponse = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" + "<?qbxml version=\"6.0\"?>\r\n<QBXML>\r\n\t<QBXMLMsgsRq onError=\"continueOnError\">\r\n\t\t";
+        strResponse += "<ItemInventoryAddRq requestID=\""+ strRequestID +"\" ><ItemInventoryAdd><Name>product name here</Name><SalesDesc>your sales description here</SalesDesc><SalesPrice>85.00</SalesPrice><IncomeAccountRef><FullName>Sales</FullName></IncomeAccountRef><COGSAccountRef><FullName>Cost of Goods Sold</FullName></COGSAccountRef><AssetAccountRef><FullName>Inventory Asset</FullName></AssetAccountRef></ItemInventoryAdd></ItemInventoryAddRq>";
+        strResponse += "\r\n\t</QBXMLMsgsRq>\r\n</QBXML>";
+        return strResponse;
+    }
+
+    public string doInventoryItemAddResponse(string strUser, string strRequestID, string strAction, string strIdent, string strExtra, string strQBXML, string strListIDOrTxnID)
+    {
+        string strListID = null;
+        strListID = this._extractListID(strQBXML);
+
+        this._objDriver.createMapping(QuickBooks_Implementor_Example.QBWC_USERNAME, QuickBooks.OBJECT_CUSTOMER, strListID, strIdent);
+
+        return "OK";
+    }
+
+    protected string _extractTagContents(string strQBXML, string strTag)
+    {
+        int intStart = strQBXML.IndexOf("<" + strTag + ">");
+        int intEnd = strQBXML.IndexOf("</" + strTag + ">");
+
+        return strQBXML.Substring(intStart + 2 + strTag.Length, intEnd - (intStart + 2 + strTag.Length));
+    }
+
+    protected string _extractListID(string strQBXML)
+    {
+        return this._extractTagContents(strQBXML, "ListID");
+    }
+
+    protected string _extractTxnID(string strQBXML)
+    {
+        return this._extractTagContents(strQBXML, "TxnID");
+    }
+
+}
+
