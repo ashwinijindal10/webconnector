@@ -1,0 +1,98 @@
+
+public class QuickBooks
+{
+
+    // QuickBooks customer actions
+    public const string OBJECT_CUSTOMER = "Customer";
+    public const string ADD_CUSTOMER = "CustomerAdd";
+    public const string MODIFY_CUSTOMER = "CustomerMod";
+    public const string QUERY_CUSTOMER = "CustomerQuery";
+
+    public const string GET_BY_NAME_CUSTOMER = "CustomerQuery-GetByName";
+    // QuickBooks invoice actions
+    public const string OBJECT_INVOICE = "Invoice";
+    public const string ADD_INVOICE = "InvoiceAdd";
+    public const string MODIFY_INVOICE = "InvoiceMod";
+    public const string QUERY_INVOICE = "InvoiceQuery";
+
+    //inventory item add
+    public const string ADD_INVENTORYITEM = "InventoryItemAdd";
+    
+    //Quickbook account action
+    public const string QUERY_ACCOUNT = "AccountQuery";
+
+
+    public const string GET_BY_REFNUMBER_INVOICE = "InvoiceQuery-GetByRefNumber";
+    // QuickBooks received payment actions
+    public const string OBJECT_RECEIVEPAYMENT = "ReceivePayment";
+    public const string ADD_RECEIVEPAYMENT = "ReceivePaymentAdd";
+    public const string MODIFY_RECEIVEPAYMENT = "ReceivePaymentMod";
+    public const string QUERY_RECEIVEPAYMENT = "ReceivePaymentQuery";
+
+    public const string GET_BY_REFNUMBER_RECEIVEPAYMENT = "RecievePaymentQuery-GetByRefNumber";
+    // QuickBooks item actions (generic, all items, not specific to any type of item)
+    public const string OBJECT_ITEM = "Item";
+    public const string QUERY_ITEM = "ItemQuery";
+
+    public const string GET_BY_NAME_ITEM = "ItemQuery-GetByName";
+    // QuickBooks service item actions
+    public const string OBJECT_SERVICEITEM = "ItemService";
+    public const string ADD_SERVICEITEM = "ItemServiceAdd";
+    public const string MODIFY_SERVICEITEM = "ItemServiceMod";
+    public const string QUERY_SERVICEITEM = "ItemServiceQuery";
+
+    public const string GET_BY_NAME_SERVICEITEM = "ItemServiceQuery-GetByName";
+    // QuickBooks non-inventory item actions
+    public const string OBJECT_NONINVENTORYITEM = "ItemNonInventory";
+    public const string ADD_NONINVENTORYITEM = "ItemNonInventoryAdd";
+    public const string MOD_NONINVENTORYITEM = "ItemNonInventoryMod";
+    public const string QUERY_NONINVENTORYITEM = "ItemNonInventoryQuery";
+
+    public const string GET_BY_NAME_NONINVENTORYITEM = "ItemNonInventoryQuery-GetByName";
+    // Custom query actions (specialized queries that don't query a specific type and/or you have multiple queries for a single specific type)
+    public const string QUERY_CUSTOM1 = "Custom1";
+    public const string QUERY_CUSTOM2 = "Custom2";
+    public const string QUERY_CUSTOM3 = "Custom3";
+    public const string QUERY_CUSTOM4 = "Custom4";
+
+    public const string QUERY_CUSTOM5 = "Custom5";
+    // QuickBooks queue statuses
+    // Queued, waiting to be processed
+    public const string QUEUE_STATUS_QUEUED = "q";
+    // Successfully sent message and got response from QB
+    public const string QUEUE_STATUS_SUCCESS = "s";
+    // An error occured 
+    public const string QUEUE_STATUS_ERROR = "e";
+    // An error occured, but the error was handled by an error handler
+    public const string QUEUE_STATUS_HANDLED = "h";
+    // The request is currently being processed
+    public const string QUEUE_STATUS_PROCESSING = "p";
+
+    // The amount of time it takes for an untouched session to expire
+
+    public const int TICKET_TIMEOUT = 600;
+    // Log levels (unimplemented)
+    public const int LOG_NONE = 0;
+    public const int LOG_NORMAL = 1;
+    public const int LOG_VERBOSE = 2;
+
+    public const int LOG_DEVELOP = 3;
+    // Types of callbacks (generate a request vs. handle a response)
+    public const int CALLBACK_REQUEST = 1;
+
+    public const int CALLBACK_RESPONSE = 2;
+    // Priority contants (if you need more priorities, you can use any integers, higher integers get processed first)
+    public const int PRIORITY_LOWEST = 0;
+    public const int PRIORITY_LOWER = 10;
+    public const int PRIORITY_LOW = 20;
+    public const int PRIORITY_NORMAL = 30;
+    public const int PRIORITY_HIGH = 40;
+    public const int PRIORITY_HIGHER = 50;
+
+    public const int PRIORITY_HIGHEST = 60;
+    // Taxable status constants
+    public const string QUICKBOOKS_TAXABLE = "TAX";
+    public const string QUICKBOOKS_NONTAXABLE = "NON";
+}
+
+
